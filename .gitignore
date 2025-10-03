@@ -24,7 +24,3 @@ dist-ssr
 *.sw?
 .env
 
-/src/services/conversationService.ts
-/src/components/chat
-/src/types/chatTypes.ts
-/src/components/chatScreen.tsx

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { UserProvider, useUser } from './contexts/UserContext';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
+import ChatScreen from './components/ChatScreen';
 import './App.css';
 
 function AppContent() {
@@ -30,7 +31,8 @@ function AppContent() {
         <Route path="/" element={<Navigate to="/signin" replace />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-=      </Routes>
+        <Route path="/chat" element={<ChatScreen />} />
+      </Routes>
     </div>
   );
 }
