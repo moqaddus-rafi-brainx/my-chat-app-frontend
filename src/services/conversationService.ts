@@ -124,4 +124,30 @@ export const conversationService = {
       throw error;
     }
   },
+
+  // Delete a conversation
+  async deleteConversation(conversationId: string): Promise<any> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/conversation/${conversationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to delete conversation');
+      }
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

@@ -35,13 +35,11 @@ const SignIn = () => {
       authService.storeToken(response.data.access_token);
       
       // Store user data in context and localStorage
+      console.log('Setting user in context:', response.data.user);
       setUser(response.data.user);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
-      // Handle successful sign in (e.g., redirect to dashboard)
-      // You can add navigation logic here
-      alert(`Welcome back, ${response.data.user.name}!`);
-      
+      console.log('User set, navigating to chat...');
       // Navigate to chat screen using React Router
       navigate('/chat');
     } catch (err) {

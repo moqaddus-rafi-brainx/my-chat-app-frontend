@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import Messages from './Messages';
 import InputField from './InputField';
 
@@ -7,11 +7,17 @@ interface ChatBoxProps {
 }
 
 const ChatBox = ({ selectedChat }: ChatBoxProps) => {
-  const [refreshKey, setRefreshKey] = useState(0);
+  const messagesRef = useRef<{ addOptimisticMessage: (content: string) => void } | null>(null);
 
   const handleMessageSent = () => {
-    // Trigger a refresh of messages by updating the key
-    setRefreshKey(prev => prev + 1);
+    // No need to refresh - optimistic updates handle this
+    console.log('Message sent - optimistic update already handled');
+  };
+
+  const handleOptimisticMessage = (content: string) => {
+    if (messagesRef.current) {
+      messagesRef.current.addOptimisticMessage(content);
+    }
   };
 
   if (!selectedChat) {
@@ -27,10 +33,14 @@ const ChatBox = ({ selectedChat }: ChatBoxProps) => {
 
   return (
     <div className="chat-box">
-      <Messages key={refreshKey} selectedChat={selectedChat} />
+      <Messages 
+        selectedChat={selectedChat} 
+        ref={messagesRef}
+      />
       <InputField 
         selectedChat={selectedChat} 
         onMessageSent={handleMessageSent}
+        onOptimisticMessage={handleOptimisticMessage}
       />
     </div>
   );

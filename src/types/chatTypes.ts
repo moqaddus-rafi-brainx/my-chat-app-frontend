@@ -39,6 +39,7 @@ export interface Conversation {
   __v: number;
   otherUser?: OtherUser;
   name?: string;
+  adminId?: string;
 }
 
 // Message types

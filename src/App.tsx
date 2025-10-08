@@ -3,10 +3,13 @@ import { UserProvider, useUser } from './contexts/UserContext';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import ChatScreen from './components/ChatScreen';
+import NotificationToast from './components/NotificationToast';
 import './App.css';
 
 function AppContent() {
-  const { isLoading } = useUser();
+  const { isAuthenticated, isLoading } = useUser();
+
+  console.log('AppContent - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
 
   if (isLoading) {
     return (
@@ -28,11 +31,12 @@ function AppContent() {
   return (
     <div className="app">
       <Routes>
-        <Route path="/" element={<Navigate to="/signin" replace />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/chat" element={<ChatScreen />} />
+        <Route path="/" element={<Navigate to={isAuthenticated ? "/chat" : "/signin"} replace />} />
+        <Route path="/signin" element={isAuthenticated ? <Navigate to="/chat" replace /> : <SignIn />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/chat" replace /> : <SignUp />} />
+        <Route path="/chat" element={isAuthenticated ? <ChatScreen /> : <Navigate to="/signin" replace />} />
       </Routes>
+      <NotificationToast />
     </div>
   );
 }

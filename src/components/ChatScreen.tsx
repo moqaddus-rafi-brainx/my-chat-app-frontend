@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
 import { useUser } from '../contexts/UserContext';
 import Sidebar from './chat/Sidebar';
 import ChatBox from './chat/ChatBox';
 import TopBar from './chat/TopBar';
 
 const ChatScreen = () => {
-  const { user, isAuthenticated, isLoading, logout } = useUser();
+  const { user, isAuthenticated, isLoading } = useUser();
   const navigate = useNavigate();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  console.log('ChatScreen - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'user:', user);
 
   useEffect(() => {
+    console.log('ChatScreen useEffect - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'user:', user);
     // Wait for auth initialization to complete
     if (!isLoading) {
       if (!isAuthenticated || !user) {
+        console.log('Redirecting to signin...');
         // Redirect to signin if not authenticated
         navigate('/signin');
         return;
@@ -30,6 +34,14 @@ const ChatScreen = () => {
     return <div>Redirecting...</div>;
   }
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="chat-screen">
       <Sidebar 
@@ -41,8 +53,19 @@ const ChatScreen = () => {
         }}
         selectedChat={selectedChat}
         onChatSelect={setSelectedChat}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onToggleMobileMenu={toggleMobileMenu}
+        onCloseMobileMenu={closeMobileMenu}
       />
       <div className="chat-main">
+        {/* Mobile menu toggle button */}
+        <button 
+          className="mobile-menu-toggle"
+          onClick={toggleMobileMenu}
+          title="Toggle Menu"
+        >
+          <span>☰</span>
+        </button>
         <TopBar selectedChat={selectedChat} />
         <ChatBox selectedChat={selectedChat} />
       </div>

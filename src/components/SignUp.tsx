@@ -40,9 +40,7 @@ const SignUp = () => {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
       // Handle successful sign up (e.g., redirect to dashboard)
-      // You can add navigation logic here
-      alert(`Welcome, ${response.data.user.name}! Your account has been created successfully.`);
-      
+      // You can add navigation logic here      
       // Navigate to chat screen using React Router
       navigate('/chat');
     } catch (err) {

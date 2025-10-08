@@ -6,7 +6,15 @@ interface MessageProps {
 }
 
 const Message = ({ message, currentUserId }: MessageProps) => {
+  console.log('💬 Message component rendering:', { 
+    messageId: message._id, 
+    content: message.content, 
+    senderId: message.senderId._id, 
+    currentUserId 
+  });
   const isOwn = message.senderId._id === currentUserId;
+  console.log('💬 Is own message:', isOwn);
+  
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

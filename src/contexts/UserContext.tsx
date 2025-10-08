@@ -64,8 +64,22 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Disconnect WebSocket to prevent using old user's context
+    import('../services/socketService').then(({ socketService }) => {
+      socketService.disconnect();
+      console.log('🔌 WebSocket disconnected on logout');
+    });
+    
     // Navigation will be handled by the component that calls logout
   };
+
+  // Update isAuthenticated when user changes
+  useEffect(() => {
+    console.log('User changed:', user);
+    console.log('Setting isAuthenticated to:', !!user);
+    setIsAuthenticated(!!user);
+  }, [user]);
 
   const value = {
     user,
