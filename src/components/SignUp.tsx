@@ -1,0 +1,113 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
+import { SignupDto } from '../types/auth';
+import { useUser } from '../contexts/UserContext';
+
+const SignUp = () => {
+  const { setUser } = useUser();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<SignupDto>({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await authService.signup(formData);
+      console.log('Sign up successful:', response);
+      
+      // Store the access token
+      authService.storeToken(response.data.access_token);
+      
+      // Store user data in context and localStorage
+      setUser(response.data.user);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Handle successful sign up (e.g., redirect to dashboard)
+      // You can add navigation logic here      
+      // Navigate to chat screen using React Router
+      navigate('/chat');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-form">
+        <h2>Sign Up</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              minLength={6}
+              disabled={loading}
+            />
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <button type="submit" disabled={loading} className="submit-btn">
+            {loading ? 'Signing Up...' : 'Sign Up'}
+          </button>
+        </form>
+
+        <p className="auth-switch">
+          Already have an account? <Link to="/signin">Sign In</Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default SignUp;
