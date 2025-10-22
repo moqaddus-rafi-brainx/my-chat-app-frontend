@@ -42,7 +42,7 @@ class SocketService {
     console.log('Creating new socket connection with fresh token...');
     // Ensure the API_BASE_URL is properly formatted with protocol
     const getApiBaseUrl = () => {
-      const envUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+      const envUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:4000';
       // If the URL doesn't start with http:// or https://, add https://
       if (!envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
         return `https://${envUrl}`;
