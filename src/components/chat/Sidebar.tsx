@@ -5,6 +5,7 @@ import { useUser } from '../../contexts/UserContext';
 import { Conversation } from '../../types/chatTypes';
 import People from './People';
 import CreateGroupModal from './CreateGroupModal';
+import SearchModal from './SearchModal';
 
 interface User {
   id: string;
@@ -20,9 +21,11 @@ interface SidebarProps {
   isMobileMenuOpen?: boolean;
   onToggleMobileMenu?: () => void;
   onCloseMobileMenu?: () => void;
+  onConversationDeleted?: (conversationId: string) => void;
+  onSearchMessage?: (conversationId: string, messageId: string) => void;
 }
 
-const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: propIsMobileMenuOpen, onToggleMobileMenu: propOnToggleMobileMenu, onCloseMobileMenu: propOnCloseMobileMenu }: SidebarProps) => {
+const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: propIsMobileMenuOpen, onToggleMobileMenu: propOnToggleMobileMenu, onCloseMobileMenu: propOnCloseMobileMenu, onConversationDeleted, onSearchMessage }: SidebarProps) => {
   const { logout } = useUser();
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -41,6 +44,7 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
   const [activeTab, setActiveTab] = useState<'chats' | 'people'>('chats');
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [unreadConversations, setUnreadConversations] = useState<Set<string>>(new Set());
   const [processedConversations, setProcessedConversations] = useState<Set<string>>(new Set());
 
@@ -77,6 +81,37 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
     }
   };
 
+  const removeConversation = (conversationId: string) => {
+    console.log('🗑️ Removing conversation from sidebar:', conversationId);
+    setConversations(prevConversations => {
+      const updatedConversations = prevConversations.filter(conv => conv._id !== conversationId);
+      console.log('🗑️ Updated conversations list:', updatedConversations.length);
+      console.log('🗑️ Remaining conversations:', updatedConversations.map(c => c._id));
+      return updatedConversations;
+    });
+    
+    // Remove from unread conversations if it was there
+    setUnreadConversations(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(conversationId);
+      console.log('🗑️ Updated unread conversations:', Array.from(newSet));
+      return newSet;
+    });
+  };
+
+  const markConversationAsLeft = (conversationId: string) => {
+    console.log('👋 Marking conversation as left:', conversationId);
+    setConversations(prevConversations => {
+      const updatedConversations = prevConversations.map(conv => 
+        conv._id === conversationId 
+          ? { ...conv, hasLeft: true }
+          : conv
+      );
+      console.log('👋 Updated conversations list with left status:', updatedConversations.length);
+      return updatedConversations;
+    });
+  };
+
   const handleCreateGroup = () => {
     setShowCreateGroup(true);
     setShowDropdown(false);
@@ -101,6 +136,16 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
   // Handle new conversation creation (from new_conversation and first_message events)
   const handleNewConversation = useCallback((conversationData: any) => {
     console.log('🆕 Sidebar: New conversation received:', conversationData);
+    
+    // Handle conversation deletion
+    if (conversationData && conversationData.type === 'deleted') {
+      console.log('🗑️ Sidebar: Conversation deletion received:', conversationData);
+      const { conversationId } = conversationData;
+      
+      // Remove conversation from list
+      removeConversation(conversationId);
+      return;
+    }
     
     if (conversationData && conversationData._id) {
       const conversationId = conversationData._id;
@@ -396,6 +441,30 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
     onChatSelect(chatId);
   };
 
+  // Listen for conversation deletion events
+  useEffect(() => {
+    if (onConversationDeleted) {
+      // Store the callback to be called when a conversation is deleted
+      const handleDeletion = (conversationId: string) => {
+        console.log('🗑️ Sidebar: Conversation deleted, removing from list:', conversationId);
+        removeConversation(conversationId);
+      };
+      
+      // Store the callback in a way that can be called from parent
+      // We'll use a custom event or direct function call
+      (window as any).handleSidebarConversationDeletion = handleDeletion;
+    }
+    
+    // Store the callback for conversation left
+    (window as any).handleSidebarConversationLeft = markConversationAsLeft;
+    
+    return () => {
+      // Clean up
+      delete (window as any).handleSidebarConversationDeletion;
+      delete (window as any).handleSidebarConversationLeft;
+    };
+  }, [onConversationDeleted]);
+
   // Refresh conversations when selected chat changes (to update order after new messages)
   useEffect(() => {
     if (selectedChat && activeTab === 'chats') {
@@ -481,6 +550,12 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
               <div className="dropdown-menu">
                 <button 
                   className="dropdown-item" 
+                  onClick={() => setShowGlobalSearch(true)}
+                >
+                  <span>🔍</span> Search Messages
+                </button>
+                <button 
+                  className="dropdown-item" 
                   onClick={handleCreateGroup}
                 >
                   <span>👥</span> Create Group
@@ -538,13 +613,6 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
             </button>
           </div>
 
-          <div className="search-bar">
-            <input 
-              type="text" 
-              placeholder="Search conversations..." 
-              className="search-input"
-            />
-          </div>
 
           <div className="chats-list">
         {loading ? (
@@ -569,7 +637,7 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
           conversations.map((conversation) => (
             <div 
               key={conversation._id}
-              className={`chat-item ${selectedChat === conversation._id ? 'active' : ''} ${unreadConversations.has(conversation._id) ? 'unread' : ''}`}
+              className={`chat-item ${selectedChat === conversation._id ? 'active' : ''} ${unreadConversations.has(conversation._id) ? 'unread' : ''} ${conversation.hasLeft ? 'left' : ''}`}
               onClick={() => handleChatSelect(conversation._id)}
             >
               <img 
@@ -608,6 +676,18 @@ const Sidebar = ({ currentUser, selectedChat, onChatSelect, isMobileMenuOpen: pr
           onGroupCreated={handleConversationCreated}
         />
       )}
+
+      {/* Global Search Modal */}
+      <SearchModal
+        isOpen={showGlobalSearch}
+        onClose={() => setShowGlobalSearch(false)}
+        onMessageClick={(conversationId, messageId) => {
+          if (onSearchMessage) {
+            onSearchMessage(conversationId, messageId);
+          }
+        }}
+        title="Search All Messages"
+      />
     </div>
   );
 };

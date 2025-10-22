@@ -40,6 +40,7 @@ export interface Conversation {
   otherUser?: OtherUser;
   name?: string;
   adminId?: string;
+  hasLeft?: boolean;
 }
 
 // Message types
@@ -57,6 +58,11 @@ export interface Message {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  isSystemMessage?: boolean;
+  editedAt?: string;
+  is_edited?: boolean;
+  is_deleted?: boolean;
+  is_pinned?: boolean;
 }
 
 // API Response types

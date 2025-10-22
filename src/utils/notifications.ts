@@ -14,6 +14,7 @@ class NotificationService {
 
   // Add a new notification
   addNotification(notification: Omit<Notification, 'id'>): string {
+    console.log('🔔 NotificationService: Adding notification:', notification);
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
     const newNotification: Notification = {
       id,
@@ -22,6 +23,8 @@ class NotificationService {
     };
 
     this.notifications.push(newNotification);
+    console.log('🔔 NotificationService: Total notifications after add:', this.notifications.length);
+    console.log('🔔 NotificationService: Current notifications:', this.notifications);
     this.notifyListeners();
 
     // Auto-remove after duration
@@ -77,7 +80,12 @@ class NotificationService {
 
   // Notify all listeners
   private notifyListeners(): void {
-    this.listeners.forEach(listener => listener([...this.notifications]));
+    console.log('🔔 NotificationService: Notifying listeners, count:', this.listeners.length);
+    console.log('🔔 NotificationService: Listeners:', this.listeners);
+    this.listeners.forEach((listener, index) => {
+      console.log(`🔔 NotificationService: Calling listener ${index + 1}`);
+      listener([...this.notifications]);
+    });
   }
 
   // Clear all notifications

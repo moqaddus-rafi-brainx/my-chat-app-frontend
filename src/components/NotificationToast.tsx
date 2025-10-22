@@ -5,7 +5,11 @@ const NotificationToast: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    const unsubscribe = notificationService.subscribe(setNotifications);
+    console.log('🔔 NotificationToast: Setting up subscription');
+    const unsubscribe = notificationService.subscribe((notifications) => {
+      console.log('🔔 NotificationToast: Received notifications:', notifications);
+      setNotifications(notifications);
+    });
     return unsubscribe;
   }, []);
 
@@ -13,8 +17,15 @@ const NotificationToast: React.FC = () => {
     notificationService.removeNotification(id);
   };
 
-  if (notifications.length === 0) return null;
+  console.log('🔔 NotificationToast render - notifications count:', notifications.length);
+  console.log('🔔 NotificationToast render - notifications:', notifications);
 
+  if (notifications.length === 0) {
+    console.log('🔔 NotificationToast: No notifications to display');
+    return null;
+  }
+
+  console.log('🔔 NotificationToast: Rendering notifications');
   return (
     <div className="notification-container">
       {notifications.map((notification) => (
