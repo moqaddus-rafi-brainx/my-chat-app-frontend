@@ -40,7 +40,7 @@ class SocketService {
 
     // Create new connection with fresh token
     console.log('Creating new socket connection with fresh token...');
-    const API_BASE_URL = 'http://localhost:4000';
+    const API_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:4000';
     this.socket = io(API_BASE_URL, {
       auth: {
         token: this.token
