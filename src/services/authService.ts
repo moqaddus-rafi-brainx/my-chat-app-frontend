@@ -1,7 +1,17 @@
 import { SignupDto, SigninDto, AuthResponse } from '../types/auth';
 import { UsersResponse } from '../types/chatTypes';
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+// Ensure the API_BASE_URL is properly formatted with protocol
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+  // If the URL doesn't start with http:// or https://, add https://
+  if (!envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
+    return `https://${envUrl}`;
+  }
+  return envUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const authService = {
   async signup(data: SignupDto): Promise<AuthResponse> {
