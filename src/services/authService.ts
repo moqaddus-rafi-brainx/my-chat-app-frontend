@@ -28,6 +28,9 @@ export const authService = {
 
   async signin(data: SigninDto): Promise<AuthResponse> {
     try {
+      console.log('🔐 Signin attempt to:', `${API_BASE_URL}/auth/signin`);
+      console.log('🔐 Request data:', data);
+      
       const response = await fetch(`${API_BASE_URL}/auth/signin`, {
         method: 'POST',
         headers: {
@@ -36,14 +39,27 @@ export const authService = {
         body: JSON.stringify(data),
       });
 
+      console.log('🔐 Response status:', response.status);
+      console.log('🔐 Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.log('🔐 Non-JSON response:', text);
+        throw new Error(`Server returned ${response.status}: ${text}`);
+      }
+
       const result = await response.json();
+      console.log('🔐 Response data:', result);
 
       if (!response.ok) {
-        throw new Error(result.message || 'Signin failed');
+        throw new Error(result.message || `Signin failed with status ${response.status}`);
       }
 
       return result;
     } catch (error) {
+      console.error('🔐 Signin error:', error);
       throw error;
     }
   },
